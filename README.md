@@ -1,25 +1,30 @@
 # EthicalHammer.py
 
-### Instalacja modułów
+### Instalacja 
 
-Aby program działał poprawnie, musisz upewnić się, że masz odpowiednie moduły zainstalowane. W tym przypadku używamy standardowej biblioteki Python, więc nie trzeba nic dodatkowo instalować.
+**Opis:**
+"Ethical Hammer" to narzędzie przeznaczone do etycznego testowania penetracyjnego, które skupia się na wykonywaniu powolnych ataków typu POST w celu sprawdzenia odporności serwera internetowego na tego rodzaju działania. Znaczącą cechą narzędzia jest możliwość korzystania z anonimizacji poprzez sieć Tor, co pozwala na dodatkowe zabezpieczenie tożsamości podczas testów.
 
-### Komendy
+**Instrukcja użycia:**
+```bash
+./ethical_hammer.py -t <cel> [-r <wątki> -p <port> -T -h]
+```
 
-1. **Uruchomienie programu:**
-   ```bash
-   python3 nazwa_programu.py -t <adres_ip_celu> -p <port_celu> -c <liczba_początkowych_połączeń>
-   ```
-   - Przykład: `python3 ddos-onion.py -t 192.168.1.1 -p 80 -c 100`
+**Argumenty:**
+- `-t` lub `--target`: Określa docelowy adres IP lub nazwę hosta.
+- `-r` lub `--threads`: Liczba wątków do użycia (domyślnie 256).
+- `-p` lub `--port`: Numer portu serwera internetowego (domyślnie 80).
+- `-T` lub `--tor`: Opcjonalne, włącza anonimizację poprzez sieć Tor na adresie 127.0.0.1:9150.
+- `-h` lub `--help`: Wyświetla instrukcję użycia.
 
-2. **Argumenty:**
-   - `-t` lub `--target`: Adres IP celu.
-   - `-p` lub `--port`: Port, na którym działa cel.
-   - `-c` lub `--connections`: Liczba początkowych połączeń.
+**Przykład użycia:**
+```bash
+./ethical_hammer.py -t 192.168.1.100 -r 256
+```
 
-### Jak działa program
+**Ważne:**
+Zanim zaczniesz używać tego narzędzia, upewnij się, że masz wyraźną zgodę do przeprowadzenia testów penetracyjnych. Używaj narzędzia z odpowiedzialnością i zgodnie z obowiązującymi przepisami prawnymi.
 
-Program ten implementuje atak Slowloris, który polega na utrzymaniu jak największej liczby niekompletnych połączeń z serwerem docelowym, aby go przeciążyć. Program tworzy początkowe połączenia, utrzymuje je i co pewien czas wysyła "keep-alive headers", co utrzymuje te połączenia otwarte.
 
 ### Uwaga
 
