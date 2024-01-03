@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 import time
 import sys
 import random
@@ -59,13 +59,21 @@ class EthicalHammer(Thread):
                 sys.exit()
 
 def usage():
-    print("./ethical_hammer.py -t <target> [-r <threads> -p <port> -T -h]")
+    print("\n/*")
+    print(" *" + term.RED + " Ethical Hammer " + term.NORMAL)
+    print(" * Slow POST DoS Testing Tool")
+    print(" * entropy [at] phiral.net")
+    print(" * Anon-ymized via Tor")
+    print(" * We are Legion.")
+    print(" */\n")
+    print("Usage: ./ethical_hammer.py -t <target> [-r <threads> -p <port> -T -h]")
     print(" -t|--target <Hostname|IP>")
     print(" -r|--threads <Number of threads> Defaults to 256")
     print(" -p|--port <Web Server Port> Defaults to 80")
     print(" -T|--tor Enable anonymizing through Tor on 127.0.0.1:9150")
     print(" -h|--help Shows this help\n")
     print("E.g., ./ethical_hammer.py -t 192.168.1.100 -r 256\n")
+    print("Important: Obtain explicit permission before conducting tests. Use responsibly and legally.")
 
 def main(argv):
     try:
@@ -120,12 +128,4 @@ def main(argv):
                 t.running = False
 
 if __name__ == "__main__":
-    print("\n/*")
-    print(" *" + term.RED + " Ethical Hammer " + term.NORMAL)
-    print(" * Slow POST DoS Testing Tool")
-    print(" * entropy [at] phiral.net")
-    print(" * Anon-ymized via Tor")
-    print(" * We are Legion.")
-    print(" */\n")
-
     main(sys.argv[1:])
