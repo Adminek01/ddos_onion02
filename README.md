@@ -1,4 +1,4 @@
-# ddos_onion02.
+# EthicalHammer.py
 
 ### Instalacja modułów
 
