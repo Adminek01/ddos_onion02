@@ -1,3 +1,4 @@
+
 #!/usr/bin/python
 import time
 import sys
@@ -5,8 +6,10 @@ import random
 import getopt
 import socks
 import string
-import terminal
 from threading import Thread
+from terminal import TerminalController
+
+term = TerminalController()
 
 class EthicalHammer(Thread):
     def __init__(self, host, port, tor):
@@ -59,13 +62,13 @@ class EthicalHammer(Thread):
                 sys.exit()
 
 def usage():
-    print("\n/*")
-    print(" *" + term.RED + " Ethical Hammer " + term.NORMAL)
+    print("\033[91m\n/*")
+    print(" * Ethical Hammer ")
     print(" * Slow POST DoS Testing Tool")
     print(" * entropy [at] phiral.net")
     print(" * Anon-ymized via Tor")
     print(" * We are Legion.")
-    print(" */\n")
+    print(" */\033[0m\n")
     print("Usage: ./ethical_hammer.py -t <target> [-r <threads> -p <port> -T -h]")
     print(" -t|--target <Hostname|IP>")
     print(" -r|--threads <Number of threads> Defaults to 256")
@@ -120,12 +123,4 @@ def main(argv):
 
     while thread_list:
         try:
-            thread_list = [t.join(1) for t in thread_list if t is not None and t.is_alive()]
-        except KeyboardInterrupt:
-            print("\nShutting down threads...\n")
-            for t in thread_list:
-                stop_now = True
-                t.running = False
-
-if __name__ == "__main__":
-    main(sys.argv[1:])
+            thread
