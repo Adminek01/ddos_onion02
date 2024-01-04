@@ -3,7 +3,9 @@
 ### Instalacja 
 
 **Opis:**
-"Ethical Hammer" to narzędzie przeznaczone do etycznego testowania penetracyjnego, które skupia się na wykonywaniu powolnych ataków typu POST w celu sprawdzenia odporności serwera internetowego na tego rodzaju działania. Znaczącą cechą narzędzia jest możliwość korzystania z anonimizacji poprzez sieć Tor, co pozwala na dodatkowe zabezpieczenie tożsamości podczas testów.
+"Ethical Hammer" to narzędzie przeznaczone do etycznego testowania penetracyjnego, które skupia się na wykonywaniu powolnych ataków typu POST w celu sprawdzenia odporności serwera internetowego na tego rodzaju działania. Znaczącą cechą narzędzia jest możliwość korzystania z anonimizacji poprzez sieć Tor, co pozwala na dodatkowe zabezpieczenie tożsamości podczas testów.    dodałem funkcje ping 
+
+### Pamping3, co możesz zrobić za pomocą polecenia pip install ping3.
 
 **Instrukcja użycia:**
 ```bash
